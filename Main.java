@@ -8,6 +8,7 @@ public class Main {
 
             GameFrame mainFrame = new GameFrame(800);
             mainFrame.setVisible(true);
+            mainFrame.
         });
     }
 }
