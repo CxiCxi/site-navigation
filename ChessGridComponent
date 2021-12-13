@@ -1,0 +1,50 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+
+public class ChessGridComponent extends BasicComponent {
+    public static int chessSize;
+    public static int gridSize;
+    public static Color gridColor = new Color(255, 150, 50);
+    private static ArrayList<Step> stepList;
+    private ChessPiece chessPiece;
+    private int row;
+    private int col;
+
+    public ChessGridComponent(int row, int col) {
+        this.setSize(gridSize, gridSize);
+        this.row = row;
+        this.col = col;
+    }
+
+    @Override
+    public void onMouseClicked() {
+        System.out.printf("%s clicked (%d, %d)\n", GameFrame.controller.getCurrentPlayer(), row, col);
+        //todo: complete mouse click method
+        if (GameFrame.controller.canClick(row, col)) {
+            if (this.chessPiece == ChessPiece.Yellow) {
+                int c = 0, b = 0;
+                if (GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK) {
+                    c = -1;
+                    b = 1;
+                }
+
+                if (GameFrame.controller.getCurrentPlayer() == ChessPiece.WHITE) {
+                    c = 1;
+                    b = -1;
+                }
+                int[][] a = GameFrame.controller.getGamePanel().ChangePieces(row, col, b, c);
+                GameFrame.controller.getGamePanel().ChangePanel(GameFrame.controller.getCurrentPlayer(),a);
+                GameFrame.controller.swapPlayer();
+                Step M=new Step(row,col,c,a);
+                stepList.add(M);
+                if(GameFrame .controller.getGamePanel() .countStep(a)  || GameFrame .controller .getGamePanel() .YellowPiece()
+                        ==0) {
+                    JOptionPane.showMessageDialog(null, GameFrame.controller.getGamePanel().whoWin
+                            (a, GameFrame.controller.getGamePanel().YellowPiece()));
+                    GameFrame .controller .getGamePanel() .initialGame();
+                    GameFrame .controller .getGamePanel() .initialGamePlace() ;
+                    System.exit(0);//按照要求是，当出现胜者的时候，结束游戏。所以我觉得，此时的结束游戏应该是返回初始页面，因为直接关掉窗口就太怪了。
+                    //判断输赢的弹窗 按下确定后，回到一开始的页面。
+                }
+            }
