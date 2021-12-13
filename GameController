@@ -24,20 +24,31 @@ public class GameController {
     }
 
     public void swapPlayer() {
-        countScore();
+       // countScore();
         currentPlayer = (currentPlayer == ChessPiece.BLACK) ? ChessPiece.WHITE : ChessPiece.BLACK;
         statusPanel.setPlayerText(currentPlayer.name());
-        statusPanel.setScoreText(blackScore, whiteScore);
+        //statusPanel.setScoreText(blackScore, whiteScore);
     }
 
 
-    public void countScore() {
+    public void countScore(int[][] a) {//直接通过这个得到黑棋和白棋在当前棋盘的成绩，并通过静止的棋盘输出黑棋和白棋当前的成绩。
+        //先获取状态，之后完善这个方法
         //todo: modify the countScore method
-        if (currentPlayer == ChessPiece.BLACK) {
-            blackScore++;
-        } else {
-            whiteScore++;
+        clearScore() ;
+        for(int i=0;i< gamePanel.getCHESS_COUNT();i++){
+            for(int j=0;j< gamePanel.getCHESS_COUNT();j++){
+                if(a[i][j]==-1){
+                    blackScore++;
+                }
+                if(a[i][j]==1){
+                    whiteScore++;
+                }
+            }
         }
+    }
+    public void clearScore(){
+        blackScore =0;
+        whiteScore =0;
     }
 
 
@@ -98,6 +109,15 @@ public class GameController {
             e.printStackTrace();
         }
     }
+
+
+
+
+    public boolean canClick(int row, int col) {
+        return gamePanel.canClickGrid(row, col, currentPlayer);
+    }
+}
+
 
 
 
