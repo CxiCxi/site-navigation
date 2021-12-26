@@ -1,14 +1,20 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-
+import java.util.Arrays;
+import java.util.Random;
 public class ChessGridComponent extends BasicComponent {
     public static int chessSize;
     public static int gridSize;
-    public static Color gridColor = new Color(255, 150, 50);
-    private static ArrayList<Step> stepList;
+    public static Color gridColor = new Color(56, 140, 200);
+    private static ArrayList<Step> stepList = new ArrayList<>();
     private ChessPiece chessPiece;
     private int row;
+
+    public static void setStepList(ArrayList<Step> stepList) {
+        ChessGridComponent.stepList = stepList;
+    }
+
     private int col;
 
     public ChessGridComponent(int row, int col) {
@@ -19,38 +25,129 @@ public class ChessGridComponent extends BasicComponent {
 
     @Override
     public void onMouseClicked() {
+        GameFrame .controller .AMusic() ;
+        if (stepList.size() == 0) {
+            int[][] m = {{0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, -1, 1, 0, 0, 0},
+                    {0, 0, 0, 1, -1, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}};
+            Step I = new Step(0, 2, 2, -1,0,0, m);
+            stepList.add(I);
+        }
         System.out.printf("%s clicked (%d, %d)\n", GameFrame.controller.getCurrentPlayer(), row, col);
         //todo: complete mouse click method
-        if (GameFrame.controller.canClick(row, col)) {
-            if (this.chessPiece == ChessPiece.Yellow) {
-                int c = 0, b = 0;
-                if (GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK) {
-                    c = -1;
-                    b = 1;
-                }
+        if ((this.chessPiece == ChessPiece.Yellow && initialFrame.getTyper()==1 && GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK)
+                ||(this.chessPiece == ChessPiece.Yellow && initialFrame.getTyper()==2 && GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK)
+                ||  (this.chessPiece == ChessPiece.Yellow && initialFrame.getTyper()==3 && GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK)
+                || (this.chessPiece == ChessPiece.Yellow && initialFrame.getTyper() == 0)) {
 
-                if (GameFrame.controller.getCurrentPlayer() == ChessPiece.WHITE) {
-                    c = 1;
-                    b = -1;
-                }
-                int[][] a = GameFrame.controller.getGamePanel().ChangePieces(row, col, b, c);
-                GameFrame.controller.getGamePanel().ChangePanel(GameFrame.controller.getCurrentPlayer(),a);
-                GameFrame.controller.swapPlayer();
-                Step M=new Step(row,col,c,a);
-                stepList.add(M);
-                if(GameFrame .controller.getGamePanel() .countStep(a)  || GameFrame .controller .getGamePanel() .YellowPiece()
-                        ==0) {
-                    JOptionPane.showMessageDialog(null, GameFrame.controller.getGamePanel().whoWin
-                            (a, GameFrame.controller.getGamePanel().YellowPiece()));
-                    GameFrame .controller .getGamePanel() .initialGame();
-                    GameFrame .controller .getGamePanel() .initialGamePlace() ;
-                    System.exit(0);//按照要求是，当出现胜者的时候，结束游戏。所以我觉得，此时的结束游戏应该是返回初始页面，因为直接关掉窗口就太怪了。
-                    //判断输赢的弹窗 按下确定后，回到一开始的页面。
-                }
+            int c = 0, b = 0;
+            if (GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK) {
+                c = -1;
+                b = 1;
             }
-              }
-    }
 
+            if (GameFrame.controller.getCurrentPlayer() == ChessPiece.WHITE) {
+                c = 1;
+                b = -1;
+            }
+
+            int[][] a = GameFrame.controller.getGamePanel().ChangePieces(row, col, b, c);
+            GameFrame.controller.getGamePanel().ChangePanel(GameFrame.controller.getCurrentPlayer(), a);
+            GameFrame.controller.swapPlayer();
+            GameFrame.controller.countScore(a);//通过这个方法，得到黑棋和白棋的成绩，是当前棋盘的成绩。
+            GameFrame.controller.getStatusPanel().setScoreText(GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore());//显示分数文档
+            System.out.println(GameFrame.controller.getGamePanel().whoWin(a, GameFrame.controller.getGamePanel().YellowPiece()));
+            Step M = new Step(0, GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore(),c,row,col, a);
+            stepList.add(M);
+            knowWhenEnd(a);
+          //  if(stepList.size()>=3&&GameFrame.controller.getGamePanel().YellowPiece()==0){
+           //     new exit() ;
+            //}
+
+        } else if (GameFrame.getTreatNumber() ==0) {//修改 2021.12.26
+            GameFrame .controller .WMusic() ;
+            JOptionPane.showMessageDialog(this, "Wrong step");
+        }
+        if (GameFrame.getTreatNumber() == 10 && this.chessPiece == null) {
+            GameFrame .controller .AMusic() ;
+            int p = 0, q = 0;
+            this.chessPiece = GameFrame.controller.getCurrentPlayer();
+            GameFrame.controller.swapPlayer();
+            ChessPiece lan;
+            if (GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK) {
+                int li = GameFrame.controller.getBlackScore() + 1;
+                p = 1;
+                q = -1;
+                lan = ChessPiece.WHITE;
+                // GameFrame .controller .getStatusPanel() .setScoreText(li ,GameFrame .controller .getWhiteScore());
+            } else {
+                int pang = GameFrame.controller.getWhiteScore() + 1;
+                p = -1;
+                q = 1;
+                //ameFrame .controller .getStatusPanel() .setScoreText( GameFrame .controller .getBlackScore(),pang);
+                lan = ChessPiece.BLACK;
+            }
+            int[][] ying = GameFrame.controller.getGamePanel().ChangePieces(row, col, q, p);
+            Step o = new Step(10, GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore(),p,row,col,  ying);
+            stepList.add(o);
+            GameFrame.controller.countScore(ying);
+            GameFrame.controller.getStatusPanel().setScoreText(GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore());
+            GameFrame.controller.getGamePanel().ChangePanel(lan, ying);
+            repaint();
+            GameFrame.setTreatNumber(0);
+        }/*try {
+            Thread.sleep(4000);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }*/
+    }//人下棋
+
+
+    //机器人下棋
+    public static void robot() {
+        if (initialFrame.getTyper() != 0) {
+
+            int h = 0, l = 0;
+            if (GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK) {
+                h = 1;
+                l = -1;
+            }
+
+            if (GameFrame.controller.getCurrentPlayer() == ChessPiece.WHITE) {
+                h = -1;
+                l = 1;
+            }
+            ArrayList<int[]> D = null;
+            if (initialFrame.getTyper() == 1) {
+                D = GameFrame.controller.getGamePanel().easy(GameFrame.controller.getGamePanel().getInformation(h, l));
+            }
+            if (initialFrame.getTyper() == 2) {
+                D = GameFrame.controller.getGamePanel().normal(GameFrame.controller.getGamePanel().getInformation(h, l));
+            }
+            if (initialFrame.getTyper() == 3) {
+                D = GameFrame.controller.getGamePanel().hard(GameFrame.controller.getGamePanel().getInformation(h, l));
+            }
+            Random rand = new Random();
+            int rank1;
+            if (D.size() != 1) {
+                rank1 = rand.nextInt(D.size());
+            } else {
+                rank1 = 0;
+            }
+            int e = D.get(rank1)[1];
+            int s = D.get(rank1)[2];
+            int[][] op = GameFrame.controller.getGamePanel().ChangePieces(e, s, h, l);
+            GameFrame.controller.getGamePanel().ChangePanel(ChessPiece.WHITE, op);
+            GameFrame.controller.countScore(op);//通过这个方法，得到黑棋和白棋的成绩，是当前棋盘的成绩。
+            GameFrame.controller.getStatusPanel().setScoreText(GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore());//显示分数文档
+
+            Step M = new Step(0, GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore(),l,e,s,  op);
+            stepList.add(M);
+            GameFrame.controller.swapPlayer();
+            knowWhenEnd(op);
+            System.out.println(e);
+            System.out.println(s);
+        }
+    }
     public ChessPiece getChessPiece() {
         return chessPiece;
     }
@@ -70,10 +167,12 @@ public class ChessGridComponent extends BasicComponent {
     public static ArrayList<Step> getStepList() {
         return stepList;
     }
-    public static ArrayList<Step> removeStep(int i){
+
+    public static ArrayList<Step> removeStep(int i) {
         stepList.remove(stepList.get(i));
         return stepList;
     }
+
     public void drawPiece(Graphics g) {
         g.setColor(gridColor);
         g.fillRect(1, 1, this.getWidth() - 2, this.getHeight() - 2);
@@ -83,13 +182,33 @@ public class ChessGridComponent extends BasicComponent {
         }
     }
 
+    public static void knowWhenEnd(int[][] a) {
+        if (GameFrame.controller.getGamePanel().countStep(a) ||GameFrame.controller.getGamePanel().yellowornot(a)) {
+            JOptionPane.showMessageDialog(null, GameFrame.controller.getGamePanel().whoWin
+                    (a, GameFrame.controller.getGamePanel().YellowPiece()));
+            GameFrame.controller.getStatusPanel().setPlayerText(ChessPiece.BLACK.name());
+            GameFrame.controller.getStatusPanel().setScoreText(2, 2);
+            GameFrame.controller.setCurrentPlayer(ChessPiece.BLACK);
+            GameFrame.controller.getGamePanel().initialGame();
+            GameFrame.controller.getGamePanel().initialGamePlace();
+
+        }
+    }
+    public static void gamechange(int [][]a){
+        GameFrame.controller.swapPlayer();
+        GameFrame.controller.getGamePanel().ChangePanel(GameFrame.controller.getCurrentPlayer(), a);
+    }
+
+    public void draw(Graphics g) {
+        ImageIcon picture = new ImageIcon("src/picture/erzi.jpg") ;
+        Image image = picture .getImage() ;
+        g.drawImage(image ,0,0,200,200,this) ;
+    }
 
     @Override
     public void paintComponent(Graphics g) {
-        super.printComponents(g);
+        super .paintComponent(g) ;
         drawPiece(g);
     }
-
-
 }
 
