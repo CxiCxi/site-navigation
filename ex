@@ -2,11 +2,7 @@ import java.awt.event.ActionEvent;
 
 import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
-
-import javax.swing.JFrame;
-
-import javax.swing.JPanel;
+import javax.swing.*;
 
 /**
 
@@ -15,6 +11,7 @@ import javax.swing.JPanel;
  */
 
 public class exit {
+
     private static final int WIDTH = 300;
 
     private static final int HEIGHT = 200;
@@ -26,6 +23,7 @@ public class exit {
 
         jf.setSize(WIDTH, HEIGHT);
 
+        jf.setLocation(600,600) ;
         jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         jf.setVisible(true);
@@ -36,9 +34,10 @@ public class exit {
 
 // 创建两个按钮并添加到内容面板
 
-        JButton close1 = new JButton("关闭");
-
+        JButton close1 = new JButton("out");
+        JLabel aa = new JLabel("no place for you,click out,next turn ") ;
         contentPane.add(close1);
+        contentPane .add(aa) ;
 
         close1.addActionListener(new ActionListener() {
             @Override
@@ -49,7 +48,7 @@ public class exit {
 // System.exit(0);
 
                 jf.dispose();
-                ChessGridComponent.gamechange(ChessGridComponent.getStepList().get(ChessGridComponent.getStepList().size()-1).getStepPanel());
+                ChessGridComponent.gamechange(GameFrame.controller.getGamePanel().a());
             }
 
         });
