@@ -1,12 +1,15 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.junit.platform.commons.util.StringUtils;
+
+import javax.sound.sampled.*;
+import javax.swing.*;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static javax.sound.sampled.AudioSystem.getAudioInputStream;
 
-public class GameController {
+
+public class GameController extends JFrame {
 
 
     private ChessBoardPanel gamePanel;
@@ -14,6 +17,21 @@ public class GameController {
     private ChessPiece currentPlayer;
     private int blackScore;
     private int whiteScore;
+    private static File file = null;
+    private static AudioInputStream audio;
+    private static int musicCon = 0;
+
+    public StatusPanel getStatusPanel() {
+        return statusPanel;
+    }
+
+    public int getBlackScore() {
+        return blackScore;
+    }
+
+    public int getWhiteScore() {
+        return whiteScore;
+    }
 
     public GameController(ChessBoardPanel gamePanel, StatusPanel statusPanel) {
         this.gamePanel = gamePanel;
@@ -23,8 +41,16 @@ public class GameController {
         whiteScore = 2;
     }
 
+    public static int getMusicCon() {
+        return musicCon;
+    }
+
+    public static void setMusicCon(int musicCon) {
+        GameController.musicCon = musicCon;
+    }
+
     public void swapPlayer() {
-       // countScore();
+        // countScore();
         currentPlayer = (currentPlayer == ChessPiece.BLACK) ? ChessPiece.WHITE : ChessPiece.BLACK;
         statusPanel.setPlayerText(currentPlayer.name());
         //statusPanel.setScoreText(blackScore, whiteScore);
@@ -34,21 +60,22 @@ public class GameController {
     public void countScore(int[][] a) {//直接通过这个得到黑棋和白棋在当前棋盘的成绩，并通过静止的棋盘输出黑棋和白棋当前的成绩。
         //先获取状态，之后完善这个方法
         //todo: modify the countScore method
-        clearScore() ;
-        for(int i=0;i< gamePanel.getCHESS_COUNT();i++){
-            for(int j=0;j< gamePanel.getCHESS_COUNT();j++){
-                if(a[i][j]==-1){
+        clearScore();
+        for (int i = 0; i < gamePanel.getCHESS_COUNT(); i++) {
+            for (int j = 0; j < gamePanel.getCHESS_COUNT(); j++) {
+                if (a[i][j] == -1) {
                     blackScore++;
                 }
-                if(a[i][j]==1){
+                if (a[i][j] == 1) {
                     whiteScore++;
                 }
             }
         }
     }
-    public void clearScore(){
-        blackScore =0;
-        whiteScore =0;
+
+    public void clearScore() {
+        blackScore = 0;
+        whiteScore = 0;
     }
 
 
@@ -68,26 +95,172 @@ public class GameController {
 
     public void readFileData(String fileName) {
         //todo: read date from file
+
+        ArrayList<Step> readStep = new ArrayList<>();
         List<String> fileData = new ArrayList<>();
-        int[][] dataS;
         try {
             FileReader fileReader = new FileReader(fileName);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String line;
+            int error = 0;
+            String typeoffile = fileName.substring(fileName.length() - 3 );
+            System.out.println(typeoffile);
+            if (!typeoffile.equals("txt")) {
+                JOptionPane.showMessageDialog(this, "104");
+                error++;
+            }
             while ((line = bufferedReader.readLine()) != null) {
                 fileData.add(line);
             }
             fileData.forEach(System.out::println);
-            dataS  = new int[fileData .size()][];
-            for(int i=0;i<fileData .size() ;i++){
-                String [] str = fileData .get(i).split(" ");
-                dataS [i]= new int[str .length ];
-                for(int j=0;j<str .length ;j++){
-                    dataS [i][j] = Integer .parseInt(str [j]);
+            int t = Integer.parseInt(fileData.get(0));
+
+            int chess = 0;
+            int[] a = new int[t + 1];
+            for (int i = 0; i < t; i++) {
+                for (int j = 1; j < fileData.size(); j++) {
+                    if (fileData.get(j).equals("step" + i)) {
+                        a[i] = j;
+                    }
                 }
             }
-            gamePanel .loadGameByData(dataS);
+            a[t] = fileData.size();
+            for (int i = 0; i < t; i++) {
+                List<String> step = new ArrayList<>();
+                int cheat = 0;
+                int color = 0;
+                int BlackScore = 0;
+                int WhiteScore = 0;
+                int row = 0;
+                int col = 0;
 
+                for (int h = a[i] + 1; h < a[i + 1]; h++) {
+                    step.add(fileData.get(h));
+                }
+                if (step.get(0).equals("cheat or not")) {
+                    cheat = Integer.parseInt(step.get(1));
+                } else {
+                    JOptionPane.showMessageDialog(this, "106");
+                    error++;
+                }
+                if (step.get(2).equals("color")) {
+                    if (testString(step.get(3)) && step.get(3) != null) {
+                        color = Integer.parseInt(step.get(3));
+                    }
+                    System.out.println(color);
+                    if (color != -1 && color != 1) {
+                        JOptionPane.showMessageDialog(this, "103");
+                        error++;
+                    }
+                }
+                if (step.get(4).equals("BlackScore")) {
+                    BlackScore = Integer.parseInt(step.get(5));
+                } else {
+                    JOptionPane.showMessageDialog(this, "106");
+                    error++;
+                }
+                if (step.get(6).equals("WhiteScore")) {
+                    whiteScore = Integer.parseInt(step.get(7));
+                } else {
+                    JOptionPane.showMessageDialog(this, "106");
+                    error++;
+                }
+                if (step.get(8).equals("Row")) {
+                    row = Integer.parseInt(step.get(9));
+                } else {
+                    JOptionPane.showMessageDialog(this, "106");
+                    error++;
+                }
+                if (step.get(10).equals("Col")) {
+                    col = Integer.parseInt(step.get(11));
+                } else {
+                    JOptionPane.showMessageDialog(this, "106");
+                    error++;
+                }
+
+                int h = 0;
+                if (step.get(12).equals("Chess Board")) {
+                    h = step.size() - 13;//
+                }
+                int[][] dataS = new int[h][];
+                for (int q = 0; q < h; q++) {
+                    String[] str = step.get(13 + q).split(" ");
+                    dataS[q] = new int[str.length];
+                    for (int j = 0; j < str.length; j++) {
+                        dataS[q][j] = Integer.parseInt(str[j]);
+                    }
+                }
+                int blacks = 0;
+                int whites = 0;
+                int blank = 0;
+                int others = 0;
+                int panelStatic = 0;
+                if (dataS.length != 8) {
+                    panelStatic = 1;
+                }
+                for (int k = 0; k < dataS.length; k++) {
+                    if (dataS[k].length != 8) {
+                        panelStatic = 1;
+                    }
+                    for (int g = 0; g < dataS[k].length; g++) {
+                        if (dataS[k][g] == 0) {
+                            blank = 1;
+                        } else if (dataS[k][g] == 1) {
+                            whites = 1;
+                        } else if (dataS[k][g] == -1) {
+                            blacks = 1;
+                        } else {
+                            others = 1;
+                        }
+                    }
+                }
+                if (blacks != 1 || whites != 1 || others == 1) {
+                    JOptionPane.showMessageDialog(this, "102");
+                    error++;
+                }
+                if (panelStatic != 0) {
+                    JOptionPane.showMessageDialog(this, "101");
+                    error++;
+                }
+                if (error == 0) {
+                    Step stepi = new Step(cheat, BlackScore, WhiteScore, color, row, col, dataS);
+                    readStep.add(stepi);
+                } else break;
+            }
+            if (readStep.size() == t) {
+                for (int i = 1; i < readStep.size(); i++) {
+                    if (!arrayEqual(ChessBoardPanel.judge(readStep.get(i).getCheat(), readStep.get(i).getRow(), readStep.get(i).getCol(),
+                            readStep.get(i).getColor(), readStep.get(i - 1).getStepPanel()), readStep.get(i).getStepPanel())) {
+                        chess++;
+                    }
+
+                }
+
+                if (chess != 0) {
+                    JOptionPane.showMessageDialog(this, "105");
+                    error++;
+                }
+
+            }
+            ChessPiece cm;
+            ChessPiece R;
+
+            if (error == 0 && readStep.get(readStep.size() - 1).getColor() == 1) {
+                cm = ChessPiece.BLACK;
+                R = ChessPiece.WHITE;
+            } else {
+                cm = ChessPiece.WHITE;
+                R = ChessPiece.BLACK;
+            }
+            System.out.println(error);
+            System.out.println(chess);
+            if (error == 0 && chess == 0 && readStep.size() >= 1) {
+                gamePanel.ChangePanel(cm, readStep.get(readStep.size() - 1).getStepPanel());
+                GameFrame.controller.countScore(readStep.get(readStep.size() - 1).getStepPanel());
+                GameFrame.controller.getStatusPanel().setScoreText(GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore());
+                GameFrame.controller.setCurrentPlayer(R);
+                GameFrame.controller.getStatusPanel().setPlayerText(R.name());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,32 +270,162 @@ public class GameController {
         //todo: write data into file
         try {
             FileWriter myWriter = new FileWriter(fileName);
-            int m=gamePanel.getgamedata().length;
-            for(int i=0;i<m;i++){
-                for(int j=0;j<m;j++){
-                    myWriter.write(gamePanel.getgamedata()[i][j]+" ");}
+            String size = String.valueOf(ChessGridComponent.getStepList().size());
+            myWriter.write(size);
+            myWriter.write("\r\n");
+            for (int i = 0; i < ChessGridComponent.getStepList().size(); i++) {
+                myWriter.write("step" + i);
                 myWriter.write("\r\n");
+                myWriter.write("cheat or not");
+                myWriter.write("\r\n");
+                String o = String.valueOf(ChessGridComponent.getStepList().get(i).getCheat());
+                myWriter.write(o);//cheat
+                myWriter.write("\r\n");
+                myWriter.write("color");
+                myWriter.write("\r\n");
+                String c = String.valueOf(ChessGridComponent.getStepList().get(i).getColor());
+                myWriter.write(c);
+                myWriter.write("\r\n");
+                String a = String.valueOf(ChessGridComponent.getStepList().get(i).getBscore());
+                myWriter.write("BlackScore");
+                myWriter.write("\r\n");
+                myWriter.write(a);
+                myWriter.write("\r\n");
+                String b = String.valueOf(ChessGridComponent.getStepList().get(i).getWscore());
+                myWriter.write("WhiteScore");
+                myWriter.write("\r\n");
+                myWriter.write(b);
+                myWriter.write("\r\n");
+                myWriter.write("Row");
+                myWriter.write("\r\n");
+                String D = String.valueOf(ChessGridComponent.getStepList().get(i).getRow());
+                myWriter.write(D);
+                myWriter.write("\r\n");
+                myWriter.write("Col");
+                myWriter.write("\r\n");
+                String E = String.valueOf(ChessGridComponent.getStepList().get(i).getCol());
+                myWriter.write(E);
+                myWriter.write("\r\n");
+                myWriter.write("Chess Board");
+                myWriter.write("\r\n");
+                int m = (ChessGridComponent.getStepList().get(i).getStepPanel().length);
+                for (int h = 0; h < m; h++) {
+                    for (int j = 0; j < m; j++) {
+                        myWriter.write(ChessGridComponent.getStepList().get(i).getStepPanel()[h][j] + " ");
+                    }
+                    myWriter.write("\r\n");
+                }
+            }
             myWriter.close();
             System.out.println("Successfully wrote to the file.");
-        }
-    } catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
+    public void AMusic() {
+        String FilePath = "C:\\Users\\cb\\Desktop";
+        try {
+            File file = new File(FilePath + "\\点击鼠标按钮-游戏提示音-系统音效_爱给网_aigei_com.wav");
+            audio = getAudioInputStream(file);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audio);
+            clip.start();
+        } catch (LineUnavailableException | UnsupportedAudioFileException | IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void WMusic() {
+        String FilePath = "C:\\Users\\cb\\Desktop";
+        try {
+            file = new File(FilePath + "\\警告-系统警告回答错误-游戏提示_爱给网_aigei_com.wav");
+            audio = getAudioInputStream(file);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audio);
+            clip.start();
+        } catch (LineUnavailableException | UnsupportedAudioFileException | IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void BMusic() {
+        String FilePath = "C:\\Users\\cb\\Desktop";
+        try {
+            file = new File(FilePath + "\\决定1(decide1)_爱给网_aigei_com.wav");
+            audio = getAudioInputStream(file);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audio);
+            clip.start();
+        } catch (LineUnavailableException | UnsupportedAudioFileException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void B() {
+        String FilePath = "C:\\Users\\cb\\Desktop";
+        try {
+            file = new File(FilePath + "\\music1.wav");
+            audio = getAudioInputStream(file);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audio);
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+        } catch (LineUnavailableException | UnsupportedAudioFileException | IOException e) {
+            e.printStackTrace();
+        }
+    }//双人的音乐
+
+    public void A() {
+        String FilePath = "C:\\Users\\cb\\Desktop";
+        try {
+            file = new File(FilePath + "\\music3.wav");
+            audio = getAudioInputStream(file);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audio);
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+        } catch (LineUnavailableException | UnsupportedAudioFileException | IOException e) {
+            e.printStackTrace();
+        }
+    }//人机的音乐
 
 
     public boolean canClick(int row, int col) {
         return gamePanel.canClickGrid(row, col, currentPlayer);
     }
-}
 
+    public void setCurrentPlayer(ChessPiece black) {
+        this.currentPlayer = black;
+    }
 
+    public boolean arrayEqual(int[][] a, int[][] b) {
+        int m = 0;
+        for (int i = 0; i < a.length; i++) {
+            for (int j = 0; j < a[i].length; j++) {
+                if (a[i][j] != b[i][j]) {
+                    m++;
+                }
+            }
+        }
+        if (m == 0) {
+            return true;
+        } else return false;
+    }
 
-
-
-    public boolean canClick(int row, int col) {
-        return gamePanel.canClickGrid(row, col, currentPlayer);
+    public static boolean testString(String str) {
+        if (str.length() == 0) {
+            return false;
+        } else {
+            if (str.length() == 2 && str.charAt(0) == 45 && str.charAt(1) == 49) return true;
+            else for (int i = 0; i < str.length(); i++) {
+                int chr = str.charAt(i);
+                if (chr < 48 || chr > 57) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
