@@ -1,10 +1,22 @@
 import javax.swing.*;
 import java.awt.*;
+import java.net.URLConnection;
+import java.util.ArrayList;
 
 public class GameFrame extends JFrame {
     public static GameController controller;
     private ChessBoardPanel chessBoardPanel;
     private StatusPanel statusPanel;
+
+    public static void setTreatNumber(int treatNumber) {
+        GameFrame.treatNumber = treatNumber;
+    }
+
+    public static int getTreatNumber() {
+        return treatNumber;
+    }
+
+    private static int treatNumber = 0;
 
     public GameFrame(int frameSize) {
 
@@ -14,7 +26,6 @@ public class GameFrame extends JFrame {
         //获取窗口边框的长度，将这些值加到主窗口大小上，这能使窗口大小和预期相符
         Insets inset = this.getInsets();
         this.setSize(frameSize + inset.left + inset.right, frameSize + inset.top + inset.bottom);
-
         this.setLocationRelativeTo(null);
 
 
@@ -34,14 +45,34 @@ public class GameFrame extends JFrame {
         restartBtn.setLocation((this.getWidth() - chessBoardPanel.getWidth()) / 2, (this.getHeight() + chessBoardPanel.getHeight()) / 2);
         add(restartBtn);
         restartBtn.addActionListener(e -> {
+            GameFrame .controller .BMusic() ;
             System.out.println("click restart Btn");
-        });
+            GameFrame.controller.getStatusPanel().setScoreText(2, 2);
+            GameFrame.controller.getStatusPanel().setPlayerText(ChessPiece.BLACK.name());
+            chessBoardPanel.setLocation((this.getWidth() - chessBoardPanel.getWidth()) / 2, (this.getHeight() - chessBoardPanel.getHeight()) / 3);
+            statusPanel = new StatusPanel((int) (this.getWidth() * 0.8), (int) (this.getHeight() * 0.1));
+            statusPanel.setLocation((this.getWidth() - chessBoardPanel.getWidth()) / 2, 0);
+            controller = new GameController(chessBoardPanel, statusPanel);
+            controller.setGamePanel(chessBoardPanel);
+            this.add(chessBoardPanel);
+            this.add(statusPanel);
+            chessBoardPanel.initialGame();//return empty chessboard
+            chessBoardPanel.initialGamePlace();//add initial four chess
+            int[][] m = {{0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, -1, 1, 0, 0, 0},
+                    {0, 0, 0, 1, -1, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}};
+            Step I = new Step(0, 2, 2, -1,0,0, m);
+            ArrayList<Step> A=new ArrayList<>();
+            A.add(I);
+            ChessGridComponent .setStepList(A); ;
+            repaint();
 
+        });
         JButton loadGameBtn = new JButton("Load");
         loadGameBtn.setSize(120, 50);
-        loadGameBtn.setLocation(restartBtn.getX()+restartBtn.getWidth()+30, restartBtn.getY());
+        loadGameBtn.setLocation(restartBtn.getX() + restartBtn.getWidth() + 30, restartBtn.getY());
         add(loadGameBtn);
         loadGameBtn.addActionListener(e -> {
+            GameFrame .controller .BMusic() ;
             System.out.println("clicked Load Btn");
             String filePath = JOptionPane.showInputDialog(this, "input the path here");
             controller.readFileData(filePath);
@@ -49,40 +80,114 @@ public class GameFrame extends JFrame {
 
         JButton saveGameBtn = new JButton("Save");
         saveGameBtn.setSize(120, 50);
-        saveGameBtn.setLocation(loadGameBtn.getX()+restartBtn.getWidth()+30, restartBtn.getY());
+        saveGameBtn.setLocation(loadGameBtn.getX() + restartBtn.getWidth() + 30, restartBtn.getY());
         add(saveGameBtn);
         saveGameBtn.addActionListener(e -> {
+            GameFrame .controller .BMusic() ;
             System.out.println("clicked Save Btn");
             String filePath = JOptionPane.showInputDialog(this, "input the path here");
             controller.writeDataToFile(filePath);
         });
-        JButton endBtn = new JButton("End the game");
+
+        JButton endBtn = new JButton("End");
         endBtn.setSize(120, 50);
-        endBtn.setLocation(saveGameBtn.getX()+restartBtn.getWidth()+30, restartBtn.getY());
+        endBtn.setLocation(saveGameBtn.getX() + restartBtn.getWidth() + 30, restartBtn.getY());
         add(endBtn);
         endBtn.addActionListener(e -> {
+            GameFrame .controller .BMusic() ;
             System.out.println("click end Btn");
-            String [] options = {"Yes","No"};
-            int n =  JOptionPane.showConfirmDialog(this,"Are you sure you want to exit?","提示",JOptionPane.YES_NO_OPTION);		//选择对话框*/
+            String[] options = {"Yes", "No"};
+            int n = JOptionPane.showConfirmDialog(this, "Are you sure you want to exit?", "提示", JOptionPane.YES_NO_OPTION);        //选择对话框*/
             System.out.println(options[n]);
-            if(n==JOptionPane.YES_OPTION){
+            if (n == JOptionPane.YES_OPTION) {
                 System.exit(0);
             }
-            if(n==JOptionPane.NO_OPTION){
-                setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            }
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         });
         JButton undoBtn = new JButton("Undo");
-        undoBtn.setSize(120, 50);
-        undoBtn.setLocation(saveGameBtn.getX()+restartBtn.getWidth()+30, restartBtn.getY());
+        undoBtn.setSize(75, 50);
+        undoBtn.setLocation( chessBoardPanel.getX()+chessBoardPanel.getWidth()+5 ,   chessBoardPanel.getHeight() / 2+120 );
         add(undoBtn);
-        endBtn.addActionListener(e -> {
-            ChessGridComponent.removeStep(ChessGridComponent.getStepList().size()-1);
-            chessBoardPanel.loadGameByData(ChessGridComponent.getStepList().get(ChessGridComponent.getStepList().size()-2).getStepPanel());
+        undoBtn.addActionListener(e -> {
+            GameFrame .controller .BMusic() ;
+            if (ChessGridComponent.getStepList().size() > 1) {
+                ChessGridComponent.removeStep(ChessGridComponent.getStepList().size() - 1);
+                GameFrame.controller.swapPlayer();
+                ChessPiece a;
+                if (GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK) {
+                    a = ChessPiece.WHITE;
+                } else {
+                    a = ChessPiece.BLACK;
+                }
+                if (ChessGridComponent.getStepList().size() > 1) {
+                    chessBoardPanel.ChangePanel(a, ChessGridComponent.getStepList().get(ChessGridComponent.getStepList().size() - 1).getStepPanel());
+                    GameFrame.controller.getStatusPanel().setScoreText(ChessGridComponent.getStepList().get(ChessGridComponent.getStepList().size() - 1).getBscore(), ChessGridComponent.getStepList().get(ChessGridComponent.getStepList().size() - 1).getWscore());
+                    String m;
+                    if (ChessGridComponent.getStepList().get(ChessGridComponent.getStepList().size() - 1).getColor() == 1) {
+                        m = ChessPiece.BLACK.name();
+                    } else {
+                        m = ChessPiece.WHITE.name();
+                    }
+                    GameFrame.controller.getStatusPanel().setPlayerText(m);
+                } else {
+                    chessBoardPanel.initialGame();//add initial four chess
+                    chessBoardPanel.initialGamePlace();
+                }
+            }
         });
+        JButton treatGameBtn = new JButton("Cheat");//随时可以treat，无所谓下哪里。
+        treatGameBtn.setSize(75, 50);
+        treatGameBtn.setLocation(undoBtn.getX(), undoBtn.getY() + undoBtn.getHeight() + 20);
+        add(treatGameBtn);
+        treatGameBtn.addActionListener(e -> {
+            GameFrame .controller .BMusic() ;
+            System.out.println("clicked Cheat");
+            treatNumber = 10;
+            if(initialFrame.getTyper()!=0&&controller.getCurrentPlayer() == ChessPiece.WHITE){
+                JOptionPane.showMessageDialog(this,"It's not your turn!Please click the next Button!");
+                GameFrame.setTreatNumber(0);//修改，2021.12.26
+            }
+        });
+        JButton nextGameBtn = new JButton("Next");
+        nextGameBtn.setSize(75, 50);
+        nextGameBtn.setLocation(undoBtn.getX(), treatGameBtn.getY() + treatGameBtn.getHeight() + 20);
 
+        if (initialFrame.getTyper()!=0) {
+            add(nextGameBtn);
+        }
+        nextGameBtn.addActionListener(e -> {
+            GameFrame .controller .BMusic() ;
+        if(ChessGridComponent.getStepList().size()==0||controller.getCurrentPlayer()!=ChessPiece.WHITE){
+            GameFrame.setTreatNumber(0);//修改2021.12.26
+            JOptionPane.showMessageDialog(this,"It's your turn!");
+        }
+            else ChessGridComponent.robot();
+        });
+/*
+        JButton music = new JButton("Music");
+        music .setSize(75, 50);
+        music .setLocation(undoBtn.getX(), treatGameBtn.getY() + treatGameBtn.getHeight() + 70);
+        music .addActionListener(e -> {
+            GameFrame .controller .BMusic() ;
+        });
+        add(music ) ;v
+
+ */ //音乐的开关。
         this.setVisible(true);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     }
+
+    public void draw(Graphics g) {
+        ImageIcon picture = new ImageIcon("src/picture/erzi.jpg") ;
+        Image image = picture .getImage() ;
+        g.drawImage(image ,30,30,200,200,this ) ;
+        System.out.println("out");
+    }
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        draw(g);
+    }
+
 }
