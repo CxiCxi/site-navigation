@@ -25,6 +25,7 @@ public class ChessGridComponent extends BasicComponent {
 
     @Override
     public void onMouseClicked() {
+
         GameFrame .controller .AMusic() ;
         if (stepList.size() == 0) {
             int[][] m = {{0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, -1, 1, 0, 0, 0},
@@ -33,6 +34,8 @@ public class ChessGridComponent extends BasicComponent {
             stepList.add(I);
         }
         System.out.printf("%s clicked (%d, %d)\n", GameFrame.controller.getCurrentPlayer(), row, col);
+
+
         //todo: complete mouse click method
         if ((this.chessPiece == ChessPiece.Yellow && initialFrame.getTyper()==1 && GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK)
                 ||(this.chessPiece == ChessPiece.Yellow && initialFrame.getTyper()==2 && GameFrame.controller.getCurrentPlayer() == ChessPiece.BLACK)
@@ -51,7 +54,22 @@ public class ChessGridComponent extends BasicComponent {
             }
 
             int[][] a = GameFrame.controller.getGamePanel().ChangePieces(row, col, b, c);
-            GameFrame.controller.getGamePanel().ChangePanel(GameFrame.controller.getCurrentPlayer(), a);
+            System.out.println(Arrays .deepToString(a) );
+            if(stepList.size()>=3 &&!GameFrame.controller.getGamePanel().countStep(a) && GameFrame.controller.getGamePanel().newidea(GameFrame.controller.getCurrentPlayer(), a)){
+                System.out.println("good");
+                Step M = new Step(0, GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore(),c,100,100, a);
+                stepList.add(M);
+                new exit() ;
+                ChessPiece A;
+
+               if(GameFrame.controller.getCurrentPlayer()==ChessPiece.BLACK){
+                   A=ChessPiece.WHITE;
+               } else{A=ChessPiece.BLACK;}
+                GameFrame.controller.getGamePanel().ChangePanel(A, a);
+            }
+           else{ GameFrame.controller.getGamePanel().ChangePanel(GameFrame.controller.getCurrentPlayer(), a);
+
+                System.out.println("jiji");}
             GameFrame.controller.swapPlayer();
             GameFrame.controller.countScore(a);//通过这个方法，得到黑棋和白棋的成绩，是当前棋盘的成绩。
             GameFrame.controller.getStatusPanel().setScoreText(GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore());//显示分数文档
@@ -59,9 +77,7 @@ public class ChessGridComponent extends BasicComponent {
             Step M = new Step(0, GameFrame.controller.getBlackScore(), GameFrame.controller.getWhiteScore(),c,row,col, a);
             stepList.add(M);
             knowWhenEnd(a);
-          //  if(stepList.size()>=3&&GameFrame.controller.getGamePanel().YellowPiece()==0){
-           //     new exit() ;
-            //}
+
 
         } else if (GameFrame.getTreatNumber() ==0) {//修改 2021.12.26
             GameFrame .controller .WMusic() ;
@@ -196,7 +212,6 @@ public class ChessGridComponent extends BasicComponent {
     }
     public static void gamechange(int [][]a){
         GameFrame.controller.swapPlayer();
-        GameFrame.controller.getGamePanel().ChangePanel(GameFrame.controller.getCurrentPlayer(), a);
     }
 
     public void draw(Graphics g) {
