@@ -1,31 +1,41 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class ChessBoardPanel extends JPanel {
     private final int CHESS_COUNT = 8;
     private ChessGridComponent[][] chessGrids;
 
+
     public ChessBoardPanel(int width, int height) {
         this.setVisible(true);
         this.setFocusable(true);
         this.setLayout(null);
-        this.setBackground(Color.BLACK);
+        this.setBackground(Color.PINK);
         int length = Math.min(width, height);
         this.setSize(length, length);
         ChessGridComponent.gridSize = length / CHESS_COUNT;
         ChessGridComponent.chessSize = (int) (ChessGridComponent.gridSize * 0.8);
         System.out.printf("width = %d height = %d gridSize = %d chessSize = %d\n",
                 width, height, ChessGridComponent.gridSize, ChessGridComponent.chessSize);
-
         initialChessGrids();//return empty chessboard
         initialGame();//add initial four chess
-
+        initialGamePlace();
         repaint();
+    }
+
+    public int getCHESS_COUNT() {
+        return CHESS_COUNT;
+    }
+
+    public ChessGridComponent[][] getChessGrids() {
+        return chessGrids;
     }
 
     /**
      * set an empty chessboard
      */
+
     public void initialChessGrids() {
 
         chessGrids = new ChessGridComponent[CHESS_COUNT][CHESS_COUNT];
@@ -46,6 +56,33 @@ public class ChessBoardPanel extends JPanel {
     /**
      * initial origin four chess
      */
+
+        public   boolean newidea(ChessPiece currentPlayer, int[][] dataS) {
+            int b = 0, c = 0,m=0;
+            if (currentPlayer == ChessPiece.BLACK) {
+                b = -1;
+                c = 1;
+            }
+            if (currentPlayer == ChessPiece.WHITE) {
+                b = 1;
+                c = -1;
+            }
+
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    if(dataS[i][j]==0){
+                   if (dir1(dataS, i, j, b, c) || dir2(dataS, i, j, b, c) || dir3(dataS, i, j, b, c) || dir4(dataS, i, j, b, c) || dir5(dataS, i, j, b, c) ||
+                            dir6(dataS, i, j, b, c) || dir7(dataS, i, j, b, c) || dir8(dataS, i, j, b, c)) {
+                     m++;
+                    }
+                }}
+            }
+            if(m==0){return true;}
+            else return false;
+        }
+
+
+
     public void initialGame() {
         clearChessPieces();
         chessGrids[3][3].setChessPiece(ChessPiece.BLACK);
@@ -62,6 +99,7 @@ public class ChessBoardPanel extends JPanel {
             }
         }
     }
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -80,9 +118,119 @@ public class ChessBoardPanel extends JPanel {
             b = -1;
             c = 1;
         }
-        return dir1(getgamedata(), row, col, b, c) || dir2(getgamedata(), row, col, b, c) || dir3(getgamedata(), row, col, b, c) || dir4(getgamedata(), row, col, b, c)
-                || dir5(getgamedata(), row, col, b, c) || dir6(getgamedata(), row, col, b, c) || dir7(getgamedata(), row, col, b, c) || dir8(getgamedata(), row, col, b, c);
+        return dir1(a(), row, col, b, c) || dir2(a(), row, col, b, c) || dir3(a(), row, col, b, c) || dir4(a(), row, col, b, c)
+                || dir5(a(), row, col, b, c) || dir6(a(), row, col, b, c) || dir7(a(), row, col, b, c) || dir8(a(), row, col, b, c);
 
+    }
+
+    public int YellowPiece() {//当前的颜色棋盘
+        int count = 0;
+        for (int i = 0; i < CHESS_COUNT; i++) {
+            for (int j = 0; j < CHESS_COUNT; j++) {
+                if (chessGrids[i][j].getChessPiece() == ChessPiece.Yellow) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }//现在已经得到了黄色的数量，但现在的步骤是：写一个判断输赢的程序；然后再到静止的面板上显示谁输谁赢。
+
+    public boolean countStep(int[][] a) {
+        int c = 0;
+        for (int i = 0; i < CHESS_COUNT; i++) {
+            for (int j = 0; j < CHESS_COUNT; j++) {
+                if (a[i][j] == 1 || a[i][j] == -1) {
+                    c++;
+                }
+            }
+        }
+        if (c == 64) {
+            return true;
+        }
+        return false;
+    }
+
+    public String whoWin(int[][] a, int YellowPiece) {
+        int b = 0, w = 0;
+        //现在的代码是，双方都已经下完棋了，然后判断，所以我现在需要判断他们是不是下完棋了。一个自动的程序。
+        //还有一种情况是，点击“结束”，然后通过那个接口链接这个判断是输赢，是一个主动的。
+        if (countStep(a)) {
+            for (int i = 0; i < CHESS_COUNT; i++) {
+                for (int j = 0; j < CHESS_COUNT; j++) {
+                    if (a[i][j] == -1) {
+                        b++;
+                    }
+                    if (a[i][j] == 1) {
+                        w++;
+                    }
+                }
+            }
+            if (b > w) {
+                return String.format("The black-side WIN,white-side LOSE");
+            }
+            if (w > b) {
+                return String.format("The white-side WIN,black-side LOSE");
+            }
+            return String.format("No one wins");
+        }
+        if (YellowPiece == 0) {
+            if (GameFrame.controller.getCurrentPlayer().getColor() == Color.BLACK) {
+                return String.format("%S  WINS", ChessPiece.WHITE);
+            }
+            if (GameFrame.controller.getCurrentPlayer().getColor() == Color.WHITE) {
+                return String.format("%S  WINS", ChessPiece.BLACK);
+            }
+        }
+        return null;
+    }
+
+    public static int[][] judge(int cheat,int row, int col, int color, int a[][]) {
+        int[][] w = {{0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0}};
+        int color2;int[][] q;
+        q=w;
+        if (color == 1) {
+            color2 = -1;
+        }
+        else  {
+            color2 = 1;
+        }
+        if(cheat==0){
+        if (dir1(a, row, col, color2, color) || dir2(a, row, col, color2, color) || dir3(a, row, col, color2, color) || dir4(a, row, col, color2, color)
+                || dir5(a, row, col, color2, color) || dir6(a, row, col, color2, color) || dir7(a, row, col, color2, color) || dir8(a, row, col, color2, color))
+
+            {
+                int[][] f = changedir1(a, row, col, color2, color);
+                int[][] k = changedir2(f, row, col, color2, color);
+                int[][] h = changedir3(k, row, col, color2, color);
+                int[][] l = changedir4(h, row, col, color2, color);
+                int[][] g = changedir5(l, row, col, color2, color);
+                int[][] m = changedir6(g, row, col, color2, color);
+                int[][] n = changedir7(m, row, col, color2, color);
+               q = changedir8(n, row, col, color2, color);
+
+            }
+        }
+        if(cheat==10){
+            if (dir1(a, row, col, color2, color) || dir2(a, row, col, color2, color) || dir3(a, row, col, color2, color) || dir4(a, row, col, color2, color)
+                || dir5(a, row, col, color2, color) || dir6(a, row, col, color2, color) || dir7(a, row, col, color2, color) || dir8(a, row, col, color2, color))
+
+        {
+            int[][] f = changedir1(a, row, col, color2, color);
+            int[][] k = changedir2(f, row, col, color2, color);
+            int[][] h = changedir3(k, row, col, color2, color);
+            int[][] l = changedir4(h, row, col, color2, color);
+            int[][] g = changedir5(l, row, col, color2, color);
+            int[][] m = changedir6(g, row, col, color2, color);
+            int[][] n = changedir7(m, row, col, color2, color);
+            q = changedir8(n, row, col, color2, color);
+        }
+           else{
+               q=a;
+            q[row][col]=color;}
+        }
+
+        return q;
     }
 
     public void loadGameByData(int[][] dataS) {
@@ -96,10 +244,87 @@ public class ChessBoardPanel extends JPanel {
                 }
             }
         }
+        repaint();
+    }
+
+    public void ChangePanel(ChessPiece currentPlayer, int[][] dataS) {
+        int b = 0, c = 0;
+        if (currentPlayer == ChessPiece.BLACK) {
+            b = -1;
+            c = 1;
+        }
+        if (currentPlayer == ChessPiece.WHITE) {
+            b = 1;
+            c = -1;
+        }
+        clearChessPieces();
+        for (int i = 0; i < CHESS_COUNT; i++) {
+            for (int j = 0; j < CHESS_COUNT; j++) {
+                if (dataS[i][j] == 1) {
+                    chessGrids[i][j].setChessPiece(ChessPiece.WHITE);
+                } else if (dataS[i][j] == -1) {
+                    chessGrids[i][j].setChessPiece(ChessPiece.BLACK);
+                } else if (dir1(dataS, i, j, b, c) || dir2(dataS, i, j, b, c) || dir3(dataS, i, j, b, c) || dir4(dataS, i, j, b, c) || dir5(dataS, i, j, b, c) ||
+                        dir6(dataS, i, j, b, c) || dir7(dataS, i, j, b, c) || dir8(dataS, i, j, b, c)) {
+                    chessGrids[i][j].setChessPiece(ChessPiece.Yellow);
+                }
+            }
+        }
+        repaint();
+    }
+   public boolean yellowornot(int [][]dataS) {//有黄色就true
+int m=0;
+       for (int i = 0; i < CHESS_COUNT; i++) {
+           for (int j = 0; j < CHESS_COUNT; j++) {
+               if (dir1(dataS, i, j, 1, -1) || dir2(dataS, i, j, 1, -1) || dir3(dataS, i, j, 1, -1) || dir4(dataS, i, j, 1, -1) || dir5(dataS, i, j, 1, -1) ||
+                       dir6(dataS, i, j, 1, -1) || dir7(dataS, i, j, 1, -1) || dir8(dataS, i, j, 1, -1))
+               {m++;}
+               if (dir1(dataS, i, j, -1, 1) || dir2(dataS, i, j, -1, 1) || dir3(dataS, i, j, -1, 1) || dir4(dataS, i, j, -1, 1) || dir5(dataS, i, j, -1, 1) ||
+                       dir6(dataS, i, j, -1, 1) || dir7(dataS, i, j, -1, 1) || dir8(dataS, i, j, -1, 1)){
+                   m++;
+           }
+
+           }
+       }
+       if(m==0){return true;}
+       else return false;
+   }
+
+    public void ChangePanel1(ChessPiece currentPlayer, int[][] dataS) {
+        int b = 0, c = 0;
+        if (currentPlayer == ChessPiece.WHITE ) {
+            b = -1;
+            c = 1;
+        }
+        if (currentPlayer == ChessPiece.BLACK ) {
+            b = 1;
+            c = -1;
+        }
+        clearChessPieces();
+        for (int i = 0; i < CHESS_COUNT; i++) {
+            for (int j = 0; j < CHESS_COUNT; j++) {
+                if (dataS[i][j] == 1) {
+                    chessGrids[i][j].setChessPiece(ChessPiece.WHITE);
+                } else if (dataS[i][j] == -1) {
+                    chessGrids[i][j].setChessPiece(ChessPiece.BLACK);
+                } else if (dir1(dataS, i, j, b, c) || dir2(dataS, i, j, b, c) || dir3(dataS, i, j, b, c) || dir4(dataS, i, j, b, c) || dir5(dataS, i, j, b, c) ||
+                        dir6(dataS, i, j, b, c) || dir7(dataS, i, j, b, c) || dir8(dataS, i, j, b, c)) {
+                    chessGrids[i][j].setChessPiece(ChessPiece.Yellow);
+                }
+            }
+        }
         repaint();//导入文件完成。7
     }
 
-    public int[][] getgamedata() {
+    public void initialGamePlace() {
+        chessGrids[2][4].setChessPiece(ChessPiece.Yellow);
+        chessGrids[3][5].setChessPiece(ChessPiece.Yellow);
+        chessGrids[4][2].setChessPiece(ChessPiece.Yellow);
+        chessGrids[5][3].setChessPiece(ChessPiece.Yellow);
+        repaint();
+    }
+
+    public int[][] a() {
         int[][] a = new int[CHESS_COUNT][CHESS_COUNT];
         for (int i = 0; i < CHESS_COUNT; i++) {
             for (int j = 0; j < CHESS_COUNT; j++) {
@@ -112,6 +337,78 @@ public class ChessBoardPanel extends JPanel {
                 }
             }
         }
+        return a;
+    }
+
+    public int[][] ChangePieces(int i, int j, int b, int c) {
+        int[][] f = changedir1(a(), i, j, b, c);
+        int[][] k = changedir2(f, i, j, b, c);
+        int[][] h = changedir3(k, i, j, b, c);
+        int[][] l = changedir4(h, i, j, b, c);
+        int[][] g = changedir5(l, i, j, b, c);
+        int[][] m = changedir6(g, i, j, b, c);
+        int[][] n = changedir7(m, i, j, b, c);
+        int[][] q = changedir8(n, i, j, b, c);
+        return q;
+    }
+
+    public ArrayList<int[]> getInformation(int b, int c) {
+        ArrayList<int[]> A = new ArrayList<>();
+        for (int i = 0; i < CHESS_COUNT; i++) {
+            for (int j = 0; j < CHESS_COUNT; j++) {
+                if (a()[i][j] == 0) {
+                    if (dir1(a(), i, j, b, c) || dir2(a(), i, j, b, c) || dir3(a(), i, j, b, c) || dir4(a(), i, j, b, c)
+                            || dir5(a(), i, j, b, c) || dir6(a(), i, j, b, c) || dir7(a(), i, j, b, c) || dir8(a(), i, j, b, c)) {
+                        int f;
+                        f = (calDir1(a(), i, j, b, c) + calDir2(a(), i, j, b, c) + calDir3(a(), i, j, b, c) + calDir4(a(), i, j, b, c) +
+                                calDir5(a(), i, j, b, c) + calDir6(a(), i, j, b, c) + calDir7(a(), i, j, b, c) + calDir8(a(), i, j, b, c));
+                        int[] m = {f, i, j};
+                        A.add(m);
+                    }
+
+                }
+            }
+        }
+        return A;
+    }
+
+    public ArrayList<int[]> easy(ArrayList<int[]> a) {
+        int m = 0;
+        ArrayList<int[]> A = new ArrayList<>();
+        if (a.size() == 1) {
+            return a;
+        }
+        for (int i = 1; i < a.size(); i++) {
+            m = Math.min(a.get(i)[0], a.get(i - 1)[0]);
+        }
+        for (int[] q : a
+        ) {
+            if (q[0] == m) {
+                A.add(q);
+            }
+        }
+        return A;
+    }
+
+    public ArrayList<int[]> hard(ArrayList<int[]> a) {
+        int m = 0;
+        if (a.size() == 1) {
+            return a;
+        }
+        ArrayList<int[]> A = new ArrayList<>();
+        for (int i = 1; i < a.size(); i++) {
+            m = Math.max(a.get(i)[0], a.get(i - 1)[0]);
+        }
+        for (int[] q : a
+        ) {
+            if (q[0] == m) {
+                A.add(q);
+            }
+        }
+        return A;
+    }
+
+    public ArrayList<int[]> normal(ArrayList<int[]> a) {
         return a;
     }
 
@@ -198,4 +495,253 @@ public class ChessBoardPanel extends JPanel {
             return true;
         else return false;
     }
+
+
+    public static int[][] changedir1(int[][] a, int i, int j, int b/*对手棋子*/, int c) {
+        int m = i - 1, n = j - 1;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m--;
+            n--;
+        }
+        if (m != i - 1 && m >= 0 && n >= 0 && a[m][n] == c) {
+            for (int e = i, f = j; e >= m; e--, f--) {
+                a[e][f] = c;
+            }
+
+        }
+        return a;
+    }
+
+    public static int[][] changedir2(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i - 1, n = j;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m--;
+        }
+        if (m != i - 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e >= m; e--) {
+                a[e][f] = c;
+            }
+
+        }
+        return a;
+    }
+
+    public static int[][] changedir3(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i - 1, n = j + 1;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m--;
+            n++;
+        }
+        if (m != i - 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e >= m; e--, f++) {
+                a[e][f] = c;
+            }
+
+        }
+        return a;
+    }
+
+    public static int[][] changedir4(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i, n = j + 1;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            n++;
+        }
+        if (n != j + 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; f <= n; f++) {
+                a[e][f] = c;
+            }
+
+        }
+        return a;
+    }
+
+    public static int[][] changedir5(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i + 1, n = j + 1;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            n++;
+            m++;
+        }
+        if (m != i + 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e <= m; e++, f++) {
+                a[e][f] = c;
+            }
+
+        }
+        return a;
+    }
+
+    public static int[][] changedir6(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i + 1, n = j;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m++;
+        }
+        if (m != i + 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e <= m; e++) {
+                a[e][f] = c;
+            }
+
+        }
+        return a;
+    }
+
+    public static int[][] changedir7(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i + 1, n = j - 1;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m++;
+            n--;
+        }
+        if (m != i + 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e <= m; e++, f--) {
+                a[e][f] = c;
+            }
+
+        }
+        return a;
+    }
+
+    public static int[][] changedir8(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i, n = j - 1;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            n--;
+        }
+        if (n != j - 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; f >= n; f--) {
+                a[e][f] = c;
+            }
+
+        }
+        return a;
+    }
+
+    public static int calDir1(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i - 1, n = j - 1;
+        int q = 0;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m--;
+            n--;
+        }
+        if (m != i - 1 && m >= 0 && n >= 0 && a[m][n] == c) {
+            for (int e = i, f = j; e >= m; e--, f--) {
+
+                q++;
+            }
+
+        }
+        return q;
+    }
+
+    public static int calDir2(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i - 1, n = j;
+        int q = 0;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m--;
+        }
+        if (m != i - 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e >= m; e--) {
+
+                q++;
+            }
+
+        }
+        return q;
+    }
+
+    public static int calDir3(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i - 1, n = j + 1;
+        int q = 0;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m--;
+            n++;
+        }
+        if (m != i - 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e >= m; e--, f++) {
+
+                q++;
+            }
+
+        }
+        return q;
+    }
+
+    public static int calDir4(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i, n = j + 1;
+        int q = 0;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            n++;
+        }
+        if (n != j + 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; f <= n; f++) {
+
+                q++;
+            }
+
+        }
+        return q;
+    }
+
+    public static int calDir5(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i + 1, n = j + 1;
+        int q = 0;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            n++;
+            m++;
+        }
+        if (m != i + 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e <= m; e++, f++) {
+                q++;
+            }
+
+        }
+        return q;
+    }
+
+    public static int calDir6(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i + 1, n = j;
+        int q = 0;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m++;
+        }
+        if (m != i + 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e <= m; e++) {
+
+                q++;
+            }
+
+        }
+        return q;
+    }
+
+    public static int calDir7(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i + 1, n = j - 1;
+        int q = 0;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            m++;
+            n--;
+        }
+        if (m != i + 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; e <= m; e++, f--) {
+
+                q++;
+            }
+
+        }
+        return q;
+    }
+
+    public static int calDir8(int a[][], int i, int j, int b/*对手棋子*/, int c) {
+        int m = i, n = j - 1;
+        int q = 0;
+        while (m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == b) {
+            n--;
+        }
+        if (n != j - 1 && m >= 0 && n >= 0 && m <= 7 && n <= 7 && a[m][n] == c) {
+            for (int e = i, f = j; f >= n; f--) {
+
+                q++;
+            }
+
+        }
+        return q;
+    }
+
 }
